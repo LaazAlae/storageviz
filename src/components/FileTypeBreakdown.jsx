@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { formatNumber, formatBytes } from '../utils/dataProcessor';
+import BackgroundImage from './BackgroundImage';
 
 // Categories that matter for corporate/accounting
 // Office formats track modern vs legacy for migration insights
@@ -176,6 +177,7 @@ export default function FileTypeBreakdown({ data, inline = false }) {
 
   return (
     <div className="page-section" id="section-filetypes">
+      <BackgroundImage slideId="section-filetypes" />
       <div className="section-inner">
         <div className="section">
           <div className="section-header">

@@ -48,16 +48,16 @@ export default function AgeHistogram({ data }) {
 
               <XAxis
                 dataKey="label"
-                stroke="#6b6b70"
-                tick={{ fill: '#a0a0a5', fontSize: 12 }}
-                tickLine={{ stroke: '#6b6b70' }}
+                stroke="#a0a0a5"
+                tick={{ fill: '#d0d0d5', fontSize: 12 }}
+                tickLine={{ stroke: '#a0a0a5' }}
               />
 
               <YAxis
                 yAxisId="left"
                 stroke="#10b981"
-                tick={{ fill: '#a0a0a5', fontSize: 12 }}
-                tickLine={{ stroke: '#6b6b70' }}
+                tick={{ fill: '#d0d0d5', fontSize: 12 }}
+                tickLine={{ stroke: '#a0a0a5' }}
                 tickFormatter={(value) => formatNumber(value)}
                 label={{
                   value: 'File Count',
@@ -72,8 +72,8 @@ export default function AgeHistogram({ data }) {
                 yAxisId="right"
                 orientation="right"
                 stroke="#3b82f6"
-                tick={{ fill: '#a0a0a5', fontSize: 12 }}
-                tickLine={{ stroke: '#6b6b70' }}
+                tick={{ fill: '#d0d0d5', fontSize: 12 }}
+                tickLine={{ stroke: '#a0a0a5' }}
                 tickFormatter={(value) => `${value.toFixed(0)} GB`}
                 label={{
                   value: 'Size (GB)',

@@ -191,6 +191,9 @@ export const OptionFullMigration = forwardRef(function OptionFullMigration(
               <span className="calculator-result-value">{totalStorageTB.toFixed(2)} TB</span>
               <span className="calculator-result-detail">({totalStorageGB.toLocaleString()} GB)</span>
             </div>
+            <p className="calculator-note">
+              Note: This storage is shared between SharePoint and OneDrive across your organization.
+            </p>
           </div>
 
           <div className="option-considerations">
@@ -268,24 +271,24 @@ export function WhatNextSlide() {
             <div className="next-step">
               <div className="next-step-number">1</div>
               <div className="next-step-content">
-                <h4>Review the analysis</h4>
-                <p>Scroll through the data. Adjust the threshold to see different scenarios.</p>
+                <h4>Choose an approach</h4>
+                <p>Review the three options and decide which migration strategy fits our needs.</p>
               </div>
             </div>
 
             <div className="next-step">
               <div className="next-step-number">2</div>
               <div className="next-step-content">
-                <h4>Choose an approach</h4>
-                <p>Decide which migration strategy fits your needs and budget.</p>
+                <h4>Set the threshold</h4>
+                <p>Adjust the cutoff date to balance cost savings with user convenience.</p>
               </div>
             </div>
 
             <div className="next-step">
               <div className="next-step-number">3</div>
               <div className="next-step-content">
-                <h4>Get approval</h4>
-                <p>Present findings to stakeholders. Use this tool for live demos.</p>
+                <h4>Generate file lists</h4>
+                <p>Export the categorized inventory to guide the actual migration process.</p>
               </div>
             </div>
 
@@ -293,13 +296,13 @@ export function WhatNextSlide() {
               <div className="next-step-number">4</div>
               <div className="next-step-content">
                 <h4>Execute migration</h4>
-                <p>Generate file lists from this inventory. Begin the migration process.</p>
+                <p>Begin moving files to SharePoint and archiving inactive content.</p>
               </div>
             </div>
           </div>
 
           <p className="closing-tagline">
-            Questions? The analysis is yours to explore.
+            Questions? Scroll back to explore the data.
           </p>
         </div>
       </div>

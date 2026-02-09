@@ -37,7 +37,8 @@ const PRESENTATION_SLIDES = 11;
 
 // Analysis section IDs - ordered for presentation flow with Q&A rhythm
 const ANALYSIS_SECTIONS = [
-  'section-overview',       // Overview + file type breakdown
+  'section-overview',       // Overview with stat cards
+  'section-filetypes',      // File type breakdown (separate page)
   'section-q-cutoff',       // Question: Where should the cutoff be?
   'section-threshold',      // Migration threshold slider
   'section-cost',           // Cost simulator
@@ -59,6 +60,7 @@ export default function App() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [threshold, setThreshold] = useState(24);
   const [licensedUsers, setLicensedUsers] = useState(50);
+  const [dateMode, setDateMode] = useState('modified'); // 'modified' or 'opened'
 
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -74,8 +76,8 @@ export default function App() {
 
   const thresholdStats = useMemo(() => {
     if (!processedData) return null;
-    return getThresholdStats(processedData, threshold);
-  }, [processedData, threshold]);
+    return getThresholdStats(processedData, threshold, dateMode);
+  }, [processedData, threshold, dateMode]);
 
   const totalSlides = processedData
     ? PRESENTATION_SLIDES + ANALYSIS_SECTIONS.length
@@ -258,7 +260,7 @@ export default function App() {
       {/* Analysis Sections (only render if data is loaded) */}
       {processedData && (
         <>
-          {/* Overview Section - includes stat cards and file type breakdown */}
+          {/* Overview Section - stat cards only */}
           <div className="page-section" id="section-overview">
             <BackgroundImage slideId="section-overview" />
             <div className="section-inner">
@@ -272,9 +274,11 @@ export default function App() {
                 </button>
               </header>
               <StatCards data={processedData} thresholdStats={thresholdStats} />
-              <FileTypeBreakdown data={processedData} inline />
             </div>
           </div>
+
+          {/* File Type Breakdown - separate page (component wraps itself) */}
+          <FileTypeBreakdown data={processedData} />
 
           {/* Question: Where should the cutoff be? */}
           <QuestionCutoff />
@@ -285,12 +289,15 @@ export default function App() {
             <div className="section-inner">
               <MigrationCurve
                 data={processedData.cumulativeData}
+                dataOpened={processedData.cumulativeDataOpened}
                 threshold={threshold}
                 onThresholdChange={setThreshold}
                 maxMonths={processedData.maxMonthsAge}
-                totalFiles={processedData.totalFiles}
-                totalSizeBytes={processedData.totalSizeBytes}
+                maxMonthsOpened={processedData.maxMonthsAgeOpened}
                 thresholdStats={thresholdStats}
+                dateMode={dateMode}
+                onDateModeChange={setDateMode}
+                hasOpenedData={processedData.hasOpenedData}
               />
             </div>
           </div>

@@ -37,8 +37,23 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-export default function MigrationCurve({ data, threshold, onThresholdChange, maxMonths, thresholdStats }) {
+export default function MigrationCurve({
+  data,
+  dataOpened,
+  threshold,
+  onThresholdChange,
+  maxMonths,
+  maxMonthsOpened,
+  thresholdStats,
+  dateMode,
+  onDateModeChange,
+  hasOpenedData,
+}) {
   const [hoverMonth, setHoverMonth] = useState(null);
+
+  // Use the appropriate data based on mode
+  const activeData = dateMode === 'opened' ? dataOpened : data;
+  const activeMaxMonths = dateMode === 'opened' ? maxMonthsOpened : maxMonths;
 
   // Handle chart click - use activeLabel for exact X position
   const handleChartClick = useCallback((chartData) => {
@@ -62,9 +77,9 @@ export default function MigrationCurve({ data, threshold, onThresholdChange, max
   const generateTicks = () => {
     const ticks = [];
     // Generate ticks at year intervals (12 months)
-    const yearStep = maxMonths <= 60 ? 1 : maxMonths <= 120 ? 2 : 3;
+    const yearStep = activeMaxMonths <= 60 ? 1 : activeMaxMonths <= 120 ? 2 : 3;
     const monthStep = yearStep * 12;
-    for (let i = 0; i <= maxMonths; i += monthStep) {
+    for (let i = 0; i <= activeMaxMonths; i += monthStep) {
       ticks.push(i);
     }
     return ticks;
@@ -80,6 +95,8 @@ export default function MigrationCurve({ data, threshold, onThresholdChange, max
 
   const thresholdYears = monthsToYears(threshold);
 
+  const modeLabel = dateMode === 'opened' ? 'last opened' : 'last modified';
+
   return (
     <div className="section">
       <div className="section-header">
@@ -87,11 +104,32 @@ export default function MigrationCurve({ data, threshold, onThresholdChange, max
         <span className="section-badge">Click to set</span>
       </div>
 
+      {/* Date Mode Toggle */}
+      {hasOpenedData && (
+        <div className="date-mode-toggle">
+          <span className="date-mode-label">Measure by:</span>
+          <div className="date-mode-buttons">
+            <button
+              className={`date-mode-btn ${dateMode === 'modified' ? 'active' : ''}`}
+              onClick={() => onDateModeChange('modified')}
+            >
+              Last Modified
+            </button>
+            <button
+              className={`date-mode-btn ${dateMode === 'opened' ? 'active' : ''}`}
+              onClick={() => onDateModeChange('opened')}
+            >
+              Last Opened
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="chart-container">
         <div className="chart-wrapper" style={{ cursor: 'crosshair' }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
-              data={data}
+              data={activeData}
               margin={{ top: 20, right: 30, left: 60, bottom: 40 }}
               onClick={handleChartClick}
               onMouseMove={handleChartMouseMove}
@@ -108,24 +146,24 @@ export default function MigrationCurve({ data, threshold, onThresholdChange, max
 
               <XAxis
                 dataKey="month"
-                stroke="#6b6b70"
-                tick={{ fill: '#a0a0a5', fontSize: 12 }}
-                tickLine={{ stroke: '#6b6b70' }}
+                stroke="#a0a0a5"
+                tick={{ fill: '#d0d0d5', fontSize: 12 }}
+                tickLine={{ stroke: '#a0a0a5' }}
                 ticks={generateTicks()}
                 tickFormatter={formatXAxisTick}
                 label={{
-                  value: 'Years since last modified',
+                  value: `Years since ${modeLabel}`,
                   position: 'bottom',
                   offset: 0,
-                  fill: '#6b6b70',
+                  fill: '#a0a0a5',
                   fontSize: 12,
                 }}
               />
 
               <YAxis
-                stroke="#6b6b70"
-                tick={{ fill: '#a0a0a5', fontSize: 12 }}
-                tickLine={{ stroke: '#6b6b70' }}
+                stroke="#a0a0a5"
+                tick={{ fill: '#d0d0d5', fontSize: 12 }}
+                tickLine={{ stroke: '#a0a0a5' }}
                 domain={[0, 100]}
                 tickFormatter={(value) => `${value}%`}
               />
@@ -179,7 +217,7 @@ export default function MigrationCurve({ data, threshold, onThresholdChange, max
                 <span>Migrate to SharePoint</span>
               </div>
               <div className="threshold-stat-detail">
-                Files modified within the last <strong>{thresholdYears} years</strong>
+                Files {dateMode === 'opened' ? 'opened' : 'modified'} within the last <strong>{thresholdYears} years</strong>
               </div>
               <div className="threshold-stat-values">
                 <span className="threshold-stat-count">{formatNumber(thresholdStats?.migrate?.count || 0)} files</span>
@@ -194,7 +232,7 @@ export default function MigrationCurve({ data, threshold, onThresholdChange, max
                 <span>Send to Cold Storage</span>
               </div>
               <div className="threshold-stat-detail">
-                Files older than <strong>{thresholdYears} years</strong>
+                Files not {dateMode === 'opened' ? 'opened' : 'modified'} in <strong>{thresholdYears} years</strong>
               </div>
               <div className="threshold-stat-values">
                 <span className="threshold-stat-count">{formatNumber(thresholdStats?.archive?.count || 0)} files</span>

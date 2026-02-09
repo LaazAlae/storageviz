@@ -12,28 +12,39 @@ export function processCSVData(data) {
     incompatibleFiles: { count: 0, sizeBytes: 0 },
     files: [],
     ageHistogram: [],
-    cumulativeData: [],
+    cumulativeData: [],           // By last modified
+    cumulativeDataOpened: [],     // By last opened
     maxMonthsAge: 0,
+    maxMonthsAgeOpened: 0,
+    hasOpenedData: false,         // Whether CSV has LastOpened data
     fileTypes: {},
   };
 
   // Legacy extensions to detect
   const legacyExtensions = ['.xls', '.doc', '.ppt'];
 
+  // Check if first row has opened data
+  if (data.length > 0 && (data[0].DaysSinceOpened !== undefined || data[0].YearsSinceOpened !== undefined)) {
+    processed.hasOpenedData = true;
+  }
+
   // Process each file
   data.forEach(file => {
     const sizeBytes = parseFloat(file.SizeBytes) || 0;
     const yearsSinceModified = parseFloat(file.YearsSinceModified) || 0;
     const daysSinceModified = parseFloat(file.DaysSinceModified) || 0;
+    const daysSinceOpened = parseFloat(file.DaysSinceOpened) || daysSinceModified; // Fallback to modified
     const ext = (file.Extension || '').toLowerCase();
 
     processed.totalSizeBytes += sizeBytes;
 
-    // Track for threshold calculations
+    // Track for threshold calculations (both modified and opened)
     processed.files.push({
       sizeBytes,
       daysSinceModified,
+      daysSinceOpened,
       monthsSinceModified: Math.floor(daysSinceModified / 30),
+      monthsSinceOpened: Math.floor(daysSinceOpened / 30),
       yearsSinceModified,
     });
 
@@ -83,20 +94,28 @@ export function processCSVData(data) {
     }
   });
 
-  // Sort files by age for cumulative calculations
-  processed.files.sort((a, b) => a.daysSinceModified - b.daysSinceModified);
+  // Sort files by age for cumulative calculations (by modified date)
+  const filesByModified = [...processed.files].sort((a, b) => a.daysSinceModified - b.daysSinceModified);
+  const filesByOpened = [...processed.files].sort((a, b) => a.daysSinceOpened - b.daysSinceOpened);
 
-  // Calculate max age in months
+  // Calculate max age in months for both
   if (processed.files.length > 0) {
-    const maxDays = processed.files[processed.files.length - 1].daysSinceModified;
-    processed.maxMonthsAge = Math.ceil(maxDays / 30);
+    const maxDaysModified = filesByModified[filesByModified.length - 1].daysSinceModified;
+    const maxDaysOpened = filesByOpened[filesByOpened.length - 1].daysSinceOpened;
+    processed.maxMonthsAge = Math.ceil(maxDaysModified / 30);
+    processed.maxMonthsAgeOpened = Math.ceil(maxDaysOpened / 30);
   }
+
+  // Store both sorted arrays for threshold calculations
+  processed.filesByModified = filesByModified;
+  processed.filesByOpened = filesByOpened;
 
   // Calculate age histogram buckets
   processed.ageHistogram = calculateAgeHistogram(data);
 
-  // Calculate cumulative migration curve data
-  processed.cumulativeData = calculateCumulativeData(processed.files, processed.totalSizeBytes);
+  // Calculate cumulative migration curve data for both modes
+  processed.cumulativeData = calculateCumulativeData(filesByModified, processed.totalSizeBytes, 'daysSinceModified');
+  processed.cumulativeDataOpened = calculateCumulativeData(filesByOpened, processed.totalSizeBytes, 'daysSinceOpened');
 
   // Convert file types to sorted array
   processed.fileTypesList = Object.entries(processed.fileTypes)
@@ -143,11 +162,11 @@ function calculateAgeHistogram(data) {
   }));
 }
 
-function calculateCumulativeData(sortedFiles, totalSizeBytes) {
+function calculateCumulativeData(sortedFiles, totalSizeBytes, dayField = 'daysSinceModified') {
   if (sortedFiles.length === 0) return [];
 
   const data = [];
-  const maxMonths = Math.ceil(sortedFiles[sortedFiles.length - 1].daysSinceModified / 30);
+  const maxMonths = Math.ceil(sortedFiles[sortedFiles.length - 1][dayField] / 30);
 
   // Create data points for each month
   let fileIndex = 0;
@@ -158,7 +177,7 @@ function calculateCumulativeData(sortedFiles, totalSizeBytes) {
     const daysThreshold = month * 30;
 
     // Count files within this threshold
-    while (fileIndex < sortedFiles.length && sortedFiles[fileIndex].daysSinceModified <= daysThreshold) {
+    while (fileIndex < sortedFiles.length && sortedFiles[fileIndex][dayField] <= daysThreshold) {
       cumulativeCount++;
       cumulativeSize += sortedFiles[fileIndex].sizeBytes;
       fileIndex++;
@@ -176,17 +195,18 @@ function calculateCumulativeData(sortedFiles, totalSizeBytes) {
   return data;
 }
 
-export function getThresholdStats(processedData, thresholdMonths) {
+export function getThresholdStats(processedData, thresholdMonths, mode = 'modified') {
   const { files, totalSizeBytes } = processedData;
   const totalFiles = files.length;
 
   const daysThreshold = thresholdMonths * 30;
+  const dayField = mode === 'opened' ? 'daysSinceOpened' : 'daysSinceModified';
 
   let migrateCount = 0;
   let migrateSize = 0;
 
   for (const file of files) {
-    if (file.daysSinceModified <= daysThreshold) {
+    if (file[dayField] <= daysThreshold) {
       migrateCount++;
       migrateSize += file.sizeBytes;
     }
