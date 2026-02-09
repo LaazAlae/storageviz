@@ -23,17 +23,79 @@ export function processCSVData(data) {
   // Legacy extensions to detect
   const legacyExtensions = ['.xls', '.doc', '.ppt'];
 
-  // Check if first row has opened data
-  if (data.length > 0 && (data[0].DaysSinceOpened !== undefined || data[0].YearsSinceOpened !== undefined)) {
-    processed.hasOpenedData = true;
+  // Check if CSV has accessed/opened data - search for any matching column
+  if (data.length > 0) {
+    const keys = Object.keys(data[0]);
+    const accessPatterns = ['access', 'opened', 'lastopen'];
+    const hasOpenedColumn = keys.some(key =>
+      accessPatterns.some(pattern => key.toLowerCase().includes(pattern))
+    );
+    processed.hasOpenedData = hasOpenedColumn;
   }
+
+  // Log column names once for debugging
+  if (data.length > 0) {
+    console.log('CSV COLUMNS:', Object.keys(data[0]));
+    console.log('FIRST ROW:', data[0]);
+  }
+
+  // Helper to parse days since accessed/opened
+  const getDaysSinceOpened = (file, fallback) => {
+    const keys = Object.keys(file);
+
+    // Priority 1: Look for DaysSinceAc or similar DAYS column
+    for (const key of keys) {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey.includes('day') && (lowerKey.includes('sinceac') || lowerKey.includes('access'))) {
+        const val = parseFloat(file[key]);
+        if (!isNaN(val) && val >= 0) {
+          return val; // Return directly - this is already in days
+        }
+      }
+    }
+
+    // Priority 2: Look for YearsSinceAc or similar YEARS column
+    for (const key of keys) {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey.includes('year') && (lowerKey.includes('sinceac') || lowerKey.includes('access'))) {
+        const val = parseFloat(file[key]);
+        if (!isNaN(val) && val >= 0) {
+          return val * 365; // Convert years to days
+        }
+      }
+    }
+
+    // Priority 3: Parse AccessedDate column
+    for (const key of keys) {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey.includes('accessed') || lowerKey.includes('lastopen')) {
+        const dateStr = file[key];
+        if (dateStr && typeof dateStr === 'string') {
+          const parts = dateStr.split(/[\/\s:]+/);
+          if (parts.length >= 3) {
+            let month = parseInt(parts[0]);
+            let day = parseInt(parts[1]);
+            let year = parseInt(parts[2]);
+            if (year < 100) year += 2000;
+            const date = new Date(year, month - 1, day);
+            if (!isNaN(date.getTime())) {
+              const days = Math.floor((new Date() - date) / (1000 * 60 * 60 * 24));
+              if (days >= 0 && days < 20000) return days;
+            }
+          }
+        }
+      }
+    }
+
+    return fallback;
+  };
 
   // Process each file
   data.forEach(file => {
     const sizeBytes = parseFloat(file.SizeBytes) || 0;
     const yearsSinceModified = parseFloat(file.YearsSinceModified) || 0;
     const daysSinceModified = parseFloat(file.DaysSinceModified) || 0;
-    const daysSinceOpened = parseFloat(file.DaysSinceOpened) || daysSinceModified; // Fallback to modified
+    const daysSinceOpened = getDaysSinceOpened(file, daysSinceModified);
     const ext = (file.Extension || '').toLowerCase();
 
     processed.totalSizeBytes += sizeBytes;
@@ -98,12 +160,13 @@ export function processCSVData(data) {
   const filesByModified = [...processed.files].sort((a, b) => a.daysSinceModified - b.daysSinceModified);
   const filesByOpened = [...processed.files].sort((a, b) => a.daysSinceOpened - b.daysSinceOpened);
 
-  // Calculate max age in months for both
+  // Calculate max age in months for both (capped at 15 years = 180 months)
+  const MAX_MONTHS_CAP = 180; // 15 years max to keep charts readable
   if (processed.files.length > 0) {
     const maxDaysModified = filesByModified[filesByModified.length - 1].daysSinceModified;
     const maxDaysOpened = filesByOpened[filesByOpened.length - 1].daysSinceOpened;
-    processed.maxMonthsAge = Math.ceil(maxDaysModified / 30);
-    processed.maxMonthsAgeOpened = Math.ceil(maxDaysOpened / 30);
+    processed.maxMonthsAge = Math.min(MAX_MONTHS_CAP, Math.ceil(maxDaysModified / 30));
+    processed.maxMonthsAgeOpened = Math.min(MAX_MONTHS_CAP, Math.ceil(maxDaysOpened / 30));
   }
 
   // Store both sorted arrays for threshold calculations
@@ -166,7 +229,9 @@ function calculateCumulativeData(sortedFiles, totalSizeBytes, dayField = 'daysSi
   if (sortedFiles.length === 0) return [];
 
   const data = [];
-  const maxMonths = Math.ceil(sortedFiles[sortedFiles.length - 1][dayField] / 30);
+  const MAX_MONTHS_CAP = 180; // 15 years max
+  const rawMaxMonths = Math.ceil(sortedFiles[sortedFiles.length - 1][dayField] / 30);
+  const maxMonths = Math.min(MAX_MONTHS_CAP, rawMaxMonths);
 
   // Create data points for each month
   let fileIndex = 0;

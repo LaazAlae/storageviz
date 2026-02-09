@@ -22,10 +22,9 @@ import {
   OptionFreeze,
   WhatNextSlide,
 } from './components/AnalysisSlides';
-import StatCards from './components/StatCards';
+import OverviewPanel from './components/OverviewPanel';
 import MigrationCurve from './components/MigrationCurve';
 import AgeHistogram from './components/AgeHistogram';
-import FileTypeBreakdown from './components/FileTypeBreakdown';
 import WastePanel from './components/WastePanel';
 import CostSimulator from './components/CostSimulator';
 import BackgroundImage from './components/BackgroundImage';
@@ -272,8 +271,7 @@ export default function App() {
                   Start Over
                 </button>
               </header>
-              <StatCards data={processedData} thresholdStats={thresholdStats} />
-              <FileTypeBreakdown data={processedData} />
+              <OverviewPanel inventoryData={processedData} migrationStats={thresholdStats} />
             </div>
           </div>
 

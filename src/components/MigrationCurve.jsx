@@ -105,25 +105,23 @@ export default function MigrationCurve({
       </div>
 
       {/* Date Mode Toggle */}
-      {hasOpenedData && (
-        <div className="date-mode-toggle">
-          <span className="date-mode-label">Measure by:</span>
-          <div className="date-mode-buttons">
-            <button
-              className={`date-mode-btn ${dateMode === 'modified' ? 'active' : ''}`}
-              onClick={() => onDateModeChange('modified')}
-            >
-              Last Modified
-            </button>
-            <button
-              className={`date-mode-btn ${dateMode === 'opened' ? 'active' : ''}`}
-              onClick={() => onDateModeChange('opened')}
-            >
-              Last Opened
-            </button>
-          </div>
+      <div className="date-mode-toggle">
+        <span className="date-mode-label">Measure by:</span>
+        <div className="date-mode-buttons">
+          <button
+            className={`date-mode-btn ${dateMode === 'modified' ? 'active' : ''}`}
+            onClick={() => onDateModeChange('modified')}
+          >
+            Last Modified
+          </button>
+          <button
+            className={`date-mode-btn ${dateMode === 'opened' ? 'active' : ''}`}
+            onClick={() => onDateModeChange('opened')}
+          >
+            Last Opened
+          </button>
         </div>
-      )}
+      </div>
 
       <div className="chart-container">
         <div className="chart-wrapper" style={{ cursor: 'crosshair' }}>
