@@ -1,6 +1,27 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import Papa from 'papaparse';
-import { TitleSlide, ProblemSlide, SolutionSlide, ClassificationSlide, CostSlide, UploadSlide } from './components/Presentation';
+import {
+  TitleSlide,
+  QuestionDrives,
+  ChallengeSlide,
+  QuestionPlan,
+  SolutionSlide,
+  QuestionCost,
+  CostSlide,
+  QuestionApproach,
+  ApproachSlide,
+  QuestionData,
+  UploadSlide,
+} from './components/Presentation';
+import {
+  QuestionCutoff,
+  QuestionFullPicture,
+  QuestionOptions,
+  OptionPartialMigration,
+  OptionFullMigration,
+  OptionFreeze,
+  WhatNextSlide,
+} from './components/AnalysisSlides';
 import StatCards from './components/StatCards';
 import MigrationCurve from './components/MigrationCurve';
 import AgeHistogram from './components/AgeHistogram';
@@ -11,16 +32,23 @@ import BackgroundImage from './components/BackgroundImage';
 import { processCSVData, getThresholdStats, formatNumber } from './utils/dataProcessor';
 import './index.css';
 
-// Presentation slide count
-const PRESENTATION_SLIDES = 6;
+// Presentation slide count (11 slides with Q&A rhythm)
+const PRESENTATION_SLIDES = 11;
 
-// Analysis section IDs - ordered for presentation flow
+// Analysis section IDs - ordered for presentation flow with Q&A rhythm
 const ANALYSIS_SECTIONS = [
-  'section-overview',    // Overview + file type breakdown
-  'section-threshold',   // Migration threshold slider
-  'section-cost',        // Cost simulator (directly after threshold)
-  'section-histogram',   // File age distribution
-  'section-waste',       // Waste summary
+  'section-overview',       // Overview + file type breakdown
+  'section-q-cutoff',       // Question: Where should the cutoff be?
+  'section-threshold',      // Migration threshold slider
+  'section-cost',           // Cost simulator
+  'section-q-fullpicture',  // Question: What's the full picture?
+  'section-histogram',      // File age distribution
+  'section-waste',          // Waste summary
+  'section-q-options',      // Question: What are our options?
+  'section-option-1',       // Option 1: Partial Migration
+  'section-option-2',       // Option 2: Full Migration
+  'section-option-3',       // Option 3: Freeze and Retire
+  'section-whatnext',       // What happens next?
 ];
 
 export default function App() {
@@ -30,6 +58,7 @@ export default function App() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
   const [threshold, setThreshold] = useState(24);
+  const [licensedUsers, setLicensedUsers] = useState(50);
 
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -204,12 +233,17 @@ export default function App() {
         ))}
       </div>
 
-      {/* Presentation Slides */}
+      {/* Presentation Slides - Q&A Rhythm */}
       <TitleSlide />
-      <ProblemSlide />
+      <QuestionDrives />
+      <ChallengeSlide />
+      <QuestionPlan />
       <SolutionSlide />
-      <ClassificationSlide />
+      <QuestionCost />
       <CostSlide />
+      <QuestionApproach />
+      <ApproachSlide />
+      <QuestionData />
       <UploadSlide
         ref={uploadSlideRef}
         isDragOver={isDragOver}
@@ -242,6 +276,9 @@ export default function App() {
             </div>
           </div>
 
+          {/* Question: Where should the cutoff be? */}
+          <QuestionCutoff />
+
           {/* Migration Threshold Section */}
           <div className="page-section" id="section-threshold">
             <BackgroundImage slideId="section-threshold" />
@@ -258,13 +295,16 @@ export default function App() {
             </div>
           </div>
 
-          {/* Cost Simulator Section - directly after threshold for live feedback */}
+          {/* Cost Simulator Section */}
           <div className="page-section" id="section-cost">
             <BackgroundImage slideId="section-cost-sim" />
             <div className="section-inner">
               <CostSimulator thresholdStats={thresholdStats} />
             </div>
           </div>
+
+          {/* Question: What's the full picture? */}
+          <QuestionFullPicture />
 
           {/* Age Distribution Section */}
           <div className="page-section" id="section-histogram">
@@ -281,6 +321,24 @@ export default function App() {
               <WastePanel data={processedData} />
             </div>
           </div>
+
+          {/* Question: What are our options? */}
+          <QuestionOptions />
+
+          {/* Option 1: Partial Migration + Cold Storage */}
+          <OptionPartialMigration thresholdStats={thresholdStats} />
+
+          {/* Option 2: Full Migration to SharePoint */}
+          <OptionFullMigration
+            licensedUsers={licensedUsers}
+            onLicensedUsersChange={setLicensedUsers}
+          />
+
+          {/* Option 3: Freeze and Retire */}
+          <OptionFreeze />
+
+          {/* Closing: What happens next? */}
+          <WhatNextSlide />
         </>
       )}
     </div>

@@ -2,50 +2,68 @@ import { useMemo } from 'react';
 import { formatNumber, formatBytes } from '../utils/dataProcessor';
 
 // Categories that matter for corporate/accounting
+// Office formats track modern vs legacy for migration insights
 const FILE_CATEGORIES = {
   pdf: {
     label: 'PDF Documents',
     color: '#ef4444',
     extensions: ['.pdf'],
+    modernExt: ['.pdf'],
+    legacyExt: [],
   },
   excel: {
     label: 'Excel',
     color: '#10b981',
     extensions: ['.xlsx', '.xlsm', '.xlsb', '.xls'],
+    modernExt: ['.xlsx', '.xlsm', '.xlsb'],
+    legacyExt: ['.xls'],
   },
   word: {
     label: 'Word',
     color: '#3b82f6',
     extensions: ['.docx', '.docm', '.doc'],
+    modernExt: ['.docx', '.docm'],
+    legacyExt: ['.doc'],
   },
   powerpoint: {
     label: 'PowerPoint',
     color: '#f59e0b',
     extensions: ['.pptx', '.pptm', '.ppt'],
+    modernExt: ['.pptx', '.pptm'],
+    legacyExt: ['.ppt'],
   },
   zip: {
     label: 'ZIP Archives',
     color: '#78716c',
     extensions: ['.zip', '.rar', '.7z'],
+    modernExt: ['.zip', '.rar', '.7z'],
+    legacyExt: [],
   },
   images: {
     label: 'Images',
     color: '#8b5cf6',
     extensions: ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif', '.webp'],
+    modernExt: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
+    legacyExt: ['.bmp', '.tiff', '.tif'],
   },
 };
 
 export default function FileTypeBreakdown({ data, inline = false }) {
-  // Process file types into the simplified categories
+  // Process file types into the simplified categories with modern/legacy breakdown
   const categories = useMemo(() => {
     const result = [];
     let otherCount = 0;
     let otherSize = 0;
 
-    // Initialize categories
+    // Initialize categories with modern/legacy tracking
     const categoryData = {};
     Object.keys(FILE_CATEGORIES).forEach((key) => {
-      categoryData[key] = { count: 0, sizeBytes: 0 };
+      categoryData[key] = {
+        count: 0,
+        sizeBytes: 0,
+        modernCount: 0,
+        legacyCount: 0,
+      };
     });
 
     // Categorize each file type
@@ -57,6 +75,14 @@ export default function FileTypeBreakdown({ data, inline = false }) {
         if (catDef.extensions.includes(ext)) {
           categoryData[catKey].count += fileType.count;
           categoryData[catKey].sizeBytes += fileType.sizeBytes;
+
+          // Track modern vs legacy
+          if (catDef.modernExt.includes(ext)) {
+            categoryData[catKey].modernCount += fileType.count;
+          } else if (catDef.legacyExt.includes(ext)) {
+            categoryData[catKey].legacyCount += fileType.count;
+          }
+
           found = true;
           break;
         }
@@ -77,6 +103,9 @@ export default function FileTypeBreakdown({ data, inline = false }) {
           color: FILE_CATEGORIES[key].color,
           count: catData.count,
           sizeBytes: catData.sizeBytes,
+          modernCount: catData.modernCount,
+          legacyCount: catData.legacyCount,
+          hasBreakdown: catData.modernCount > 0 && catData.legacyCount > 0,
         });
       }
     });
@@ -89,6 +118,9 @@ export default function FileTypeBreakdown({ data, inline = false }) {
         color: '#6b7280',
         count: otherCount,
         sizeBytes: otherSize,
+        modernCount: 0,
+        legacyCount: 0,
+        hasBreakdown: false,
       });
     }
 
@@ -126,7 +158,14 @@ export default function FileTypeBreakdown({ data, inline = false }) {
                     }}
                   />
                 </div>
-                <span className="filetype-count-inline">{formatNumber(category.count)}</span>
+                <span className="filetype-count-inline">
+                  {formatNumber(category.count)}
+                  {category.hasBreakdown && (
+                    <span className="filetype-breakdown">
+                      ({formatNumber(category.modernCount)} modern / {formatNumber(category.legacyCount)} legacy)
+                    </span>
+                  )}
+                </span>
               </div>
             );
           })}
@@ -167,7 +206,14 @@ export default function FileTypeBreakdown({ data, inline = false }) {
                       />
                     </div>
                     <div className="filetype-stats">
-                      <span className="filetype-count">{formatNumber(category.count)}</span>
+                      <span className="filetype-count">
+                        {formatNumber(category.count)}
+                        {category.hasBreakdown && (
+                          <span className="filetype-breakdown-full">
+                            ({formatNumber(category.modernCount)} / {formatNumber(category.legacyCount)})
+                          </span>
+                        )}
+                      </span>
                       <span className="filetype-size">{formatBytes(category.sizeBytes)}</span>
                     </div>
                   </div>

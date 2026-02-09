@@ -38,7 +38,34 @@ const ArrowIcon = () => (
   </svg>
 );
 
-// Slide 1: Title
+// ============================================
+// QUESTION SLIDE COMPONENT
+// Simple, centered question to create storytelling rhythm
+// ============================================
+function QuestionSlide({ question, accentWord, slideId }) {
+  let questionContent = question;
+  if (accentWord && question.includes(accentWord)) {
+    const parts = question.split(accentWord);
+    questionContent = (
+      <>
+        {parts[0]}<span className="question-accent">{accentWord}</span>{parts[1]}
+      </>
+    );
+  }
+
+  return (
+    <div className="slide slide-question">
+      <BackgroundImage slideId={slideId} />
+      <div className="slide-content">
+        <h2 className="question-text">{questionContent}</h2>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// SLIDE 1: TITLE
+// ============================================
 function TitleSlide() {
   return (
     <div className="slide slide-title">
@@ -59,8 +86,23 @@ function TitleSlide() {
   );
 }
 
-// Slide 2: The Challenge (REWRITTEN - accurate content)
-function ProblemSlide() {
+// ============================================
+// SLIDE 2: QUESTION - What's happening?
+// ============================================
+function QuestionDrives() {
+  return (
+    <QuestionSlide
+      question="What's happening with our shared drives?"
+      accentWord="shared drives"
+      slideId="slide-q-drives"
+    />
+  );
+}
+
+// ============================================
+// SLIDE 3: THE CHALLENGE (Answer)
+// ============================================
+function ChallengeSlide() {
   return (
     <div className="slide slide-problem">
       <BackgroundImage slideId="slide-problem" />
@@ -96,7 +138,22 @@ function ProblemSlide() {
   );
 }
 
-// Slide 3: The Solution (Three-Tier Model) - LARGER TEXT
+// ============================================
+// SLIDE 4: QUESTION - What's the plan?
+// ============================================
+function QuestionPlan() {
+  return (
+    <QuestionSlide
+      question="What's the plan?"
+      accentWord="plan"
+      slideId="slide-q-plan"
+    />
+  );
+}
+
+// ============================================
+// SLIDE 5: THE SOLUTION (Answer)
+// ============================================
 function SolutionSlide() {
   return (
     <div className="slide slide-solution">
@@ -158,53 +215,22 @@ function SolutionSlide() {
   );
 }
 
-// Slide 4: How We Did It (REWRITTEN - plain language, larger)
-function ClassificationSlide() {
+// ============================================
+// SLIDE 6: QUESTION - How much does storage cost?
+// ============================================
+function QuestionCost() {
   return (
-    <div className="slide slide-classification">
-      <BackgroundImage slideId="slide-classification" />
-      <div className="slide-content">
-        <h2>How We Did It</h2>
-
-        <div className="classification-steps-large">
-          <div className="classification-step-large">
-            <div className="step-number-large">1</div>
-            <div className="step-content-large">
-              <h4>We inventoried every file</h4>
-              <p>140,000+ files cataloged with dates, sizes, types, and flags for duplicates.</p>
-            </div>
-          </div>
-
-          <div className="classification-step-large">
-            <div className="step-number-large">2</div>
-            <div className="step-content-large">
-              <h4>We identified the waste</h4>
-              <p>Duplicates, temp files, empty files, and outdated formats automatically flagged.</p>
-            </div>
-          </div>
-
-          <div className="classification-step-large">
-            <div className="step-number-large">3</div>
-            <div className="step-content-large">
-              <h4>We built a tool to model options</h4>
-              <p>Pick any cutoff — see how many files migrate, how many archive, and what it costs.</p>
-            </div>
-          </div>
-
-          <div className="classification-step-large">
-            <div className="step-number-large">4</div>
-            <div className="step-content-large">
-              <h4>You decide the cutoff</h4>
-              <p>The data shows the tradeoffs. Leadership picks the threshold.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <QuestionSlide
+      question="How much does storage actually cost?"
+      accentWord="cost"
+      slideId="slide-q-cost"
+    />
   );
 }
 
-// Slide 5: Cost Comparison (REDESIGNED - clearer visualization)
+// ============================================
+// SLIDE 7: THE COST DIFFERENCE (Answer)
+// ============================================
 function CostSlide() {
   return (
     <div className="slide slide-cost">
@@ -269,14 +295,90 @@ function CostSlide() {
   );
 }
 
-// Slide 6: Upload Transition
+// ============================================
+// SLIDE 8: QUESTION - How do we know which files go where?
+// ============================================
+function QuestionApproach() {
+  return (
+    <QuestionSlide
+      question="How do we know which files go where?"
+      accentWord="which files"
+      slideId="slide-q-approach"
+    />
+  );
+}
+
+// ============================================
+// SLIDE 9: THE APPROACH (Answer) - Passive voice, no "we"
+// ============================================
+function ApproachSlide() {
+  return (
+    <div className="slide slide-classification">
+      <BackgroundImage slideId="slide-classification" />
+      <div className="slide-content">
+        <h2>The Approach</h2>
+
+        <div className="classification-steps-large">
+          <div className="classification-step-large">
+            <div className="step-number-large">1</div>
+            <div className="step-content-large">
+              <h4>Every file was inventoried</h4>
+              <p>140,000+ files cataloged with creation dates, modification dates, sizes, types, and automatic flags for duplicates.</p>
+            </div>
+          </div>
+
+          <div className="classification-step-large">
+            <div className="step-number-large">2</div>
+            <div className="step-content-large">
+              <h4>Waste was identified automatically</h4>
+              <p>Scripts flagged duplicates, temp files, empty files, and outdated formats without manual review.</p>
+            </div>
+          </div>
+
+          <div className="classification-step-large">
+            <div className="step-number-large">3</div>
+            <div className="step-content-large">
+              <h4>A modeling tool was built</h4>
+              <p>Pick any time-based cutoff and instantly see how many files migrate, how many archive, and what it costs.</p>
+            </div>
+          </div>
+
+          <div className="classification-step-large">
+            <div className="step-number-large">4</div>
+            <div className="step-content-large">
+              <h4>The decision is yours</h4>
+              <p>The tool shows the tradeoffs. Leadership picks the threshold that makes sense.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// SLIDE 10: QUESTION - What does that look like for our files?
+// ============================================
+function QuestionData() {
+  return (
+    <QuestionSlide
+      question="What does that look like for our files?"
+      accentWord="our files"
+      slideId="slide-q-data"
+    />
+  );
+}
+
+// ============================================
+// SLIDE 11: UPLOAD ZONE (Transition to data)
+// ============================================
 const UploadSlide = forwardRef(function UploadSlide({ onFileUpload, isDragOver, onDragOver, onDragLeave, onDrop, onClick, fileInputRef }, ref) {
   return (
     <div className="slide slide-upload" ref={ref}>
       <BackgroundImage slideId="slide-upload" />
       <div className="slide-content">
-        <h2>That's the strategy.</h2>
-        <p className="slide-lead">Now let's look at what it means for our actual files.</p>
+        <h2>Let's find out.</h2>
+        <p className="slide-lead">Load the file inventory to see the analysis.</p>
 
         <div
           className={`drop-zone ${isDragOver ? 'drag-over' : ''}`}
@@ -303,4 +405,17 @@ const UploadSlide = forwardRef(function UploadSlide({ onFileUpload, isDragOver, 
   );
 });
 
-export { TitleSlide, ProblemSlide, SolutionSlide, ClassificationSlide, CostSlide, UploadSlide };
+export {
+  TitleSlide,
+  QuestionDrives,
+  ChallengeSlide,
+  QuestionPlan,
+  SolutionSlide,
+  QuestionCost,
+  CostSlide,
+  QuestionApproach,
+  ApproachSlide,
+  QuestionData,
+  UploadSlide,
+  QuestionSlide,
+};

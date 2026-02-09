@@ -11,12 +11,17 @@ import { useState, useEffect } from 'react';
  * They will be shown at ~10-15% opacity behind a dark overlay
  */
 export const BACKGROUND_CONFIG = {
-  // Presentation slides
+  // Presentation slides - Q&A rhythm
   'slide-title': 'pexels-markusspiske-225250.jpg',
+  'slide-q-drives': null,  // Question slides use solid dark background
   'slide-problem': 'pexels-pixabay-270700.jpg',
+  'slide-q-plan': null,
   'slide-solution': 'pexels-godiatima-4976712.jpg',
-  'slide-classification': 'pexels-sora-shimazaki-5926382.jpg',
+  'slide-q-cost': null,
   'slide-cost': 'pexels-nic-scrollstoppingphotos-6432056.jpg',
+  'slide-q-approach': null,
+  'slide-classification': 'pexels-sora-shimazaki-5926382.jpg',
+  'slide-q-data': null,
   'slide-upload': 'pexels-wwarby-19590477.jpg',
 
   // Analysis sections
