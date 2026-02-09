@@ -37,8 +37,7 @@ const PRESENTATION_SLIDES = 11;
 
 // Analysis section IDs - ordered for presentation flow with Q&A rhythm
 const ANALYSIS_SECTIONS = [
-  'section-overview',       // Overview with stat cards
-  'section-filetypes',      // File type breakdown (separate page)
+  'section-overview',       // Overview with stat cards + file types
   'section-q-cutoff',       // Question: Where should the cutoff be?
   'section-threshold',      // Migration threshold slider
   'section-cost',           // Cost simulator
@@ -260,7 +259,7 @@ export default function App() {
       {/* Analysis Sections (only render if data is loaded) */}
       {processedData && (
         <>
-          {/* Overview Section - stat cards only */}
+          {/* Overview Section - stat cards + file types */}
           <div className="page-section" id="section-overview">
             <BackgroundImage slideId="section-overview" />
             <div className="section-inner">
@@ -274,11 +273,9 @@ export default function App() {
                 </button>
               </header>
               <StatCards data={processedData} thresholdStats={thresholdStats} />
+              <FileTypeBreakdown data={processedData} />
             </div>
           </div>
-
-          {/* File Type Breakdown - separate page (component wraps itself) */}
-          <FileTypeBreakdown data={processedData} />
 
           {/* Question: Where should the cutoff be? */}
           <QuestionCutoff />
@@ -339,6 +336,7 @@ export default function App() {
           <OptionFullMigration
             licensedUsers={licensedUsers}
             onLicensedUsersChange={setLicensedUsers}
+            totalSizeGB={processedData.totalSizeBytes / (1024 * 1024 * 1024)}
           />
 
           {/* Option 3: Freeze and Retire */}

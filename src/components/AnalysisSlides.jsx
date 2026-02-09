@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { formatNumber, formatCurrency } from '../utils/dataProcessor';
 
 // ============================================
 // ANALYSIS QUESTION SLIDES
@@ -57,16 +58,16 @@ export function QuestionOptions() {
 // Three options for decision-making
 // ============================================
 
-// Icons for options
+// Icons for options (smaller size)
 const PartialMigrationIcon = () => (
-  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
     <path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z" strokeLinecap="round" strokeLinejoin="round"/>
     <path d="M8 16l2-2-2-2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
 const FullMigrationIcon = () => (
-  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
     <path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z" strokeLinecap="round" strokeLinejoin="round"/>
     <path d="M8 12h8" strokeLinecap="round"/>
     <path d="M12 8v8" strokeLinecap="round"/>
@@ -74,20 +75,39 @@ const FullMigrationIcon = () => (
 );
 
 const FreezeIcon = () => (
-  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
     <rect x="3" y="3" width="18" height="18" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
     <path d="M9 9h6v6H9z" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
 const NextStepsIcon = () => (
-  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
     <circle cx="12" cy="12" r="10" strokeLinecap="round"/>
     <polyline points="12 6 12 12 16 14" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
 export function OptionPartialMigration({ thresholdStats }) {
+  // Calculate costs based on threshold data
+  const hasData = thresholdStats && thresholdStats.migrate && thresholdStats.archive;
+
+  const sharePointRate = 0.20; // $/GB/month
+  const coolRate = 0.01; // $/GB/month
+  const archiveRate = 0.002; // $/GB/month
+
+  const sharePointGB = hasData ? thresholdStats.migrate.sizeGB : 0;
+  const coldStorageGB = hasData ? thresholdStats.archive.sizeGB : 0;
+
+  const sharePointMonthly = sharePointGB * sharePointRate;
+  const coolMonthly = coldStorageGB * coolRate;
+  const archiveMonthly = coldStorageGB * archiveRate;
+
+  const totalMonthlyCool = sharePointMonthly + coolMonthly;
+  const totalMonthlyArchive = sharePointMonthly + archiveMonthly;
+  const totalAnnualCool = totalMonthlyCool * 12;
+  const totalAnnualArchive = totalMonthlyArchive * 12;
+
   return (
     <div className="page-section option-section">
       <div className="section-inner">
@@ -101,20 +121,35 @@ export function OptionPartialMigration({ thresholdStats }) {
             Migrate active files to SharePoint. Archive inactive files to low-cost Azure storage.
           </p>
 
-          <div className="option-details">
-            <div className="option-detail-item">
-              <span className="option-detail-label">Active files</span>
-              <span className="option-detail-value">→ SharePoint</span>
+          {/* Cost Breakdown Card */}
+          {hasData ? (
+            <div className="option-cost-card">
+              <div className="option-cost-row">
+                <span className="option-cost-label">SharePoint ({sharePointGB.toFixed(1)} GB × $0.20)</span>
+                <span className="option-cost-value">{formatCurrency(sharePointMonthly)}/mo</span>
+              </div>
+              <div className="option-cost-row">
+                <span className="option-cost-label">Cool Storage ({coldStorageGB.toFixed(1)} GB × $0.01)</span>
+                <span className="option-cost-value">{formatCurrency(coolMonthly)}/mo</span>
+              </div>
+              <div className="option-cost-row">
+                <span className="option-cost-label">— or Archive ({coldStorageGB.toFixed(1)} GB × $0.002)</span>
+                <span className="option-cost-value">{formatCurrency(archiveMonthly)}/mo</span>
+              </div>
+              <div className="option-cost-total">
+                <span className="option-cost-total-label">Annual Cost (Cool)</span>
+                <span className="option-cost-total-value">{formatCurrency(totalAnnualCool)}</span>
+              </div>
+              <div className="option-cost-total alt">
+                <span className="option-cost-total-label">Annual Cost (Archive)</span>
+                <span className="option-cost-total-value">{formatCurrency(totalAnnualArchive)}</span>
+              </div>
             </div>
-            <div className="option-detail-item">
-              <span className="option-detail-label">Inactive files</span>
-              <span className="option-detail-value">→ Azure Cool/Archive</span>
+          ) : (
+            <div className="option-cost-card placeholder">
+              <p>Upload file inventory to see cost estimates</p>
             </div>
-            <div className="option-detail-item">
-              <span className="option-detail-label">Duplicates & waste</span>
-              <span className="option-detail-value">→ Removed</span>
-            </div>
-          </div>
+          )}
 
           <div className="option-benefits">
             <h4>Benefits</h4>
@@ -122,7 +157,6 @@ export function OptionPartialMigration({ thresholdStats }) {
               <li>Lowest total cost of ownership</li>
               <li>Clean, organized SharePoint environment</li>
               <li>Historical files remain accessible</li>
-              <li>Smooth user transition with familiar files</li>
             </ul>
           </div>
         </div>
@@ -132,7 +166,7 @@ export function OptionPartialMigration({ thresholdStats }) {
 }
 
 export const OptionFullMigration = forwardRef(function OptionFullMigration(
-  { licensedUsers, onLicensedUsersChange },
+  { licensedUsers, onLicensedUsersChange, totalSizeGB },
   ref
 ) {
   // SharePoint storage calculation: 1 TB base + 10 GB per licensed user
@@ -140,6 +174,12 @@ export const OptionFullMigration = forwardRef(function OptionFullMigration(
   const perUserStorageGB = 10;
   const totalStorageGB = (baseStorageTB * 1024) + (licensedUsers * perUserStorageGB);
   const totalStorageTB = totalStorageGB / 1024;
+
+  // Calculate full migration cost
+  const hasData = totalSizeGB > 0;
+  const sharePointRate = 0.20;
+  const monthlySharePointCost = totalSizeGB * sharePointRate;
+  const annualSharePointCost = monthlySharePointCost * 12;
 
   return (
     <div className="page-section option-section" ref={ref}>
@@ -152,6 +192,20 @@ export const OptionFullMigration = forwardRef(function OptionFullMigration(
           <p className="option-lead">
             Move everything to SharePoint. Simple approach, but higher ongoing costs.
           </p>
+
+          {/* Cost Summary for Full Migration */}
+          {hasData && (
+            <div className="option-cost-card full-migration">
+              <div className="option-cost-row">
+                <span className="option-cost-label">All files ({totalSizeGB.toFixed(1)} GB × $0.20)</span>
+                <span className="option-cost-value">{formatCurrency(monthlySharePointCost)}/mo</span>
+              </div>
+              <div className="option-cost-total">
+                <span className="option-cost-total-label">Annual Cost</span>
+                <span className="option-cost-total-value highlight-warning">{formatCurrency(annualSharePointCost)}</span>
+              </div>
+            </div>
+          )}
 
           <div className="sharepoint-calculator">
             <h4>SharePoint Storage Calculator</h4>
@@ -192,7 +246,7 @@ export const OptionFullMigration = forwardRef(function OptionFullMigration(
               <span className="calculator-result-detail">({totalStorageGB.toLocaleString()} GB)</span>
             </div>
             <p className="calculator-note">
-              Note: This storage is shared between SharePoint and OneDrive across your organization.
+              Note: This storage is shared between SharePoint and OneDrive.
             </p>
           </div>
 
@@ -202,7 +256,6 @@ export const OptionFullMigration = forwardRef(function OptionFullMigration(
               <li>Higher monthly storage costs</li>
               <li>May exceed SharePoint allocation</li>
               <li>Old files clutter search results</li>
-              <li>No cleanup of duplicates or waste</li>
             </ul>
           </div>
         </div>
@@ -245,7 +298,6 @@ export function OptionFreeze() {
               <li>Clean break, fresh start</li>
               <li>Users must request old files manually</li>
               <li>May disrupt workflows initially</li>
-              <li>Historical context harder to access</li>
             </ul>
           </div>
         </div>
